@@ -43,13 +43,14 @@ module Rack
     private
 
       def any_match?(patterns, host)
-        patterns.any? { |pattern|
+        patterns.any? do |pattern|
           case pattern
           when Regexp then host =~ pattern
           when String then host == pattern
+          when Proc then pattern.call(rack_request)
           else false
           end
-        }
+        end
       end
 
       def headers
@@ -83,7 +84,11 @@ module Rack
       end
 
       def request_uri
-        @request_uri ||= Addressable::URI.parse(Rack::Request.new(env).url)
+        @request_uri ||= Addressable::URI.parse(rack_request.url)
+      end
+
+      def rack_request
+        @rack_request ||= Rack::Request.new(env)
       end
     end
   end
